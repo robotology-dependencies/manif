@@ -60,8 +60,18 @@ option(BUILD_BENCHMARKING "Build all benchmarks." OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
 option(BUILD_TESTING_PYTHON "Build Python tests only." OFF)
 
+# Include the vendored FindPython3 resources
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Find a suitable Python installation
+find_package(Python3 COMPONENTS Interpreter Development.Module)
+
 if (BUILD_PYTHON_BINDINGS)
-  set(PYBIND11_FINDPYTHON ON)
+
+  if (NOT Python3_FOUND)
+    message(FATAL_ERROR "Failed to find a compatible Python3 installation")
+  endif()
+
   find_package(pybind11 REQUIRED)
   add_subdirectory(python)
 endif()
@@ -300,6 +310,10 @@ if(BUILD_TESTING)
 endif(BUILD_TESTING)
 
 if(BUILD_PYTHON_BINDINGS AND (BUILD_TESTING OR BUILD_TESTING_PYTHON))
+
+  if (NOT Python3_FOUND)
+    message(FATAL_ERROR "Failed to find a compatible Python3 installation")
+  endif()
 
   enable_testing()
   add_subdirectory(test/python)
